@@ -26,7 +26,7 @@ export default function Home() {
     
     try {
       // رابط n8n الحالي (تأكد إنه شغال في ngrok)
-      const webhookUrl = 'https://dona-nonfelonious-carin.ngrok-free.dev/webhook-test/stoki-orders'; 
+      const webhookUrl = 'https://dona-nonfelonious-carin.ngrok-free.dev/webhook/stoki-orders'; 
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
