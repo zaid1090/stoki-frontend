@@ -1,7 +1,6 @@
-// إطلاق الخزنة النهائي
+// إطلاق الخزنة النهائي - نسخة نظيفة ومباشرة
 "use client";
 import { useState, useEffect } from "react";
-import io from "socket.io-client";
 
 export default function Home() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -9,7 +8,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(300);
   const [liveNotification, setLiveNotification] = useState({ visible: false, city: "", product: "" });
   
-  // حالات حقول الإدخال (البيانات التي سنرسلها لـ n8n)
+  // حالات حقول الإدخال
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,18 +19,21 @@ export default function Home() {
     { id: 3, name: "طقم أزرار أكمام مرصع بالألماس", marketPrice: "8,800", stokiPrice: "5,100", saving: "42%", stock: "3 قطع" },
   ];
 
-  // دالة الإرسال إلى n8n
+  // دالة الإرسال المباشر إلى n8n
   const handleExclusiveAcquisition = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      // تم تحديث رابط الـ Webhook هنا
+      // رابط n8n الحالي (تأكد إنه شغال في ngrok)
       const webhookUrl = 'https://dona-nonfelonious-carin.ngrok-free.dev/webhook-test/stoki-orders'; 
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // لتخطي شاشة حماية ngrok
+        },
         body: JSON.stringify({
           name: name,
           phone: phone,
@@ -47,25 +49,34 @@ export default function Home() {
         setName("");
         setPhone("");
       } else {
-        alert("عذراً، حدث عائق تقني في الوصول إلى الخزنة.");
+        alert("عذراً، حدث عائق تقني. يرجى المحاولة ذلحينه أو التأكد من تشغيل الخزنة (n8n).");
       }
     } catch (error) {
       console.error("Error:", error);
+      alert("تعذر الاتصال. تأكد أن رابط الخزنة (ngrok) يعمل بشكل صحيح.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // محرك الـ FOMO المحلي (بديل السيرفر المحذوف)
   useEffect(() => {
-    const socket = io("https://fomo-engine-backend.onrender.com");
-    socket.on('live_conversion', (data) => {
-      const cityMatch = (data.message || "").match(/من (.*?) حجز/);
-      setLiveNotification({ visible: true, city: cityMatch ? cityMatch[1] : "الرياض", product: "منتجاً حصرياً" });
+    const cities = ["الرياض", "جدة", "دبي", "الدوحة", "الكويت"];
+    const productsList = ["حقيبة كلاسيكية", "ساعة كرونوغراف", "طقم أزرار أكمام"];
+
+    const interval = setInterval(() => {
+      const randomCity = cities[Math.floor(Math.random() * cities.length)];
+      const randomProduct = productsList[Math.floor(Math.random() * productsList.length)];
+
+      setLiveNotification({ visible: true, city: randomCity, product: randomProduct });
+
       setTimeout(() => setLiveNotification(prev => ({ ...prev, visible: false })), 6000);
-    });
-    return () => socket.disconnect();
+    }, 45000); // يظهر إشعار جديد كل 45 ثانية
+
+    return () => clearInterval(interval);
   }, []);
 
+  // عداد الندرة التنازلي
   useEffect(() => {
     if (isCheckoutOpen && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
@@ -160,7 +171,7 @@ export default function Home() {
                 disabled={isSubmitting}
                 className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-yellow-600 hover:text-white transition-all disabled:opacity-50"
               >
-                {isSubmitting ? "جاري الاتصال بالخزنة..." : "تأكيد الحجز الفوري"}
+                {isSubmitting ? "جاري فتح الخزنة..." : "تأكيد الحجز الفوري"}
               </button>
             </form>
           </div>
